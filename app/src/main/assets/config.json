@@ -1,0 +1,29 @@
+{
+  "canal_alertas": "clima-plantas-dc5d6326",
+  "zona_horaria": "America/Guayaquil",
+  "ubicaciones": [
+    {
+      "id": "gye",
+      "nombre": "Planta Guayaquil",
+      "sector": "Norte, vía a Daule",
+      "lat": -2.117701,
+      "lon": -79.944159
+    },
+    {
+      "id": "sargentillo",
+      "nombre": "Planta Lomas de Sargentillo",
+      "sector": "Lomas de Sargentillo, Guayas",
+      "lat": -1.885063,
+      "lon": -80.081578
+    }
+  ],
+  "umbrales": {
+    "aguacero_15min_mm": 5,
+    "lluvia_hora_mm": 10,
+    "lluvia_dia_mm": 20,
+    "inundacion_24h_mm": 50,
+    "inundacion_72h_mm": 80,
+    "uv_extremo": 11,
+    "sensacion_termica_c": 38
+  }
+}

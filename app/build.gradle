@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'ec.planta.climaplantas'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'ec.planta.climaplantas'
+        minSdk 26
+        targetSdk 34
+        // Cada compilación en GitHub sube el número de versión, así la app se actualiza encima de la anterior
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int)
+        versionName('1.' + (System.getenv('GITHUB_RUN_NUMBER') ?: '0'))
+    }
+
+    signingConfigs {
+        planta {
+            storeFile file('clima.keystore')
+            storePassword 'climaplantas'
+            keyAlias 'clima'
+            keyPassword 'climaplantas'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.planta
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

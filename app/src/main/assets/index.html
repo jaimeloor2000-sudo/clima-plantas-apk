@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Clima Plantas</title>
+<meta name="theme-color" content="#0A6E8A">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Clima Plantas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EDF1F3; --surface:#FFFFFF; --line:#D5DDE2; --ink:#14212B; --muted:#5B6B77;
+  --accent:#0A6E8A; --accent-soft:#DCEEF3; --bar:#3E93AD;
+  --ok:#1F7A45; --ok-soft:#DFF1E6; --warn:#946400; --warn-soft:#FBEFCF; --crit:#B42A24; --crit-soft:#F8DEDC;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#0E161C; --surface:#16222A; --line:#263640; --ink:#E6EDF1; --muted:#93A4AF;
+    --accent:#4FB6D2; --accent-soft:#17323D; --bar:#4FB6D2;
+    --ok:#5BC98A; --ok-soft:#153325; --warn:#E8B645; --warn-soft:#3A2E10; --crit:#F0736B; --crit-soft:#3E1B19;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  padding:env(safe-area-inset-top,0px) 16px calc(env(safe-area-inset-bottom,0px) + 32px)}
+.wrap{max-width:1080px;margin:0 auto}
+.num,.disp{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px 14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:8px}
+.brand h1{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:24px;margin:0;letter-spacing:.2px}
+.upd{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:10px}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:500}
+.btn:focus-visible,.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.summary{border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:500;display:flex;gap:10px;align-items:flex-start}
+.summary.ok{background:var(--ok-soft);color:var(--ok)}
+.summary.warn{background:var(--warn-soft);color:var(--warn)}
+.summary.crit{background:var(--crit-soft);color:var(--crit)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.stripe{height:5px;background:var(--ok)}
+.card.warn .stripe{background:var(--warn)} .card.crit .stripe{background:var(--crit)}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 18px 0}
+.card-h h2{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:22px;font-weight:700;margin:0;line-height:1.15;text-wrap:balance}
+.sector{color:var(--muted);font-size:13px}
+.pill{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.crit{background:var(--crit-soft);color:var(--crit)}
+.now{display:flex;align-items:center;gap:18px;padding:10px 18px 4px;flex-wrap:wrap}
+.temp{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:64px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.temp small{font-size:26px;color:var(--muted)}
+.cond{font-size:17px;font-weight:600}
+.feels{color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.stat .v{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:21px;font-weight:600;font-variant-numeric:tabular-nums}
+.sec{padding:12px 18px}
+.sec h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:10px;font-family:"IBM Plex Sans",sans-serif}
+.risks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.risks li{padding:8px 10px;border-radius:8px;font-size:14px;font-weight:500}
+.risks li.crit{background:var(--crit-soft);color:var(--crit)} .risks li.warn{background:var(--warn-soft);color:var(--warn)}
+.prec{margin:8px 0 0;padding-left:18px;font-size:14px}
+.prec li{margin-bottom:3px}
+.days{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+.days td{padding:6px 4px;border-top:1px solid var(--line)}
+.days tr:first-child td{border-top:0}
+.days .d{font-weight:600;width:22%}
+.days .c{color:var(--muted);width:32%}
+.days .r{text-align:right}
+.days .t{text-align:right;font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:16px;font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--line)}
+.dot.warn{background:var(--warn)} .dot.crit{background:var(--crit)}
+.alarm{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.alarm h2{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:21px;margin:0 0 6px}
+.alarm ol{margin:8px 0 0;padding-left:20px;max-width:68ch}
+.alarm li{margin-bottom:6px}
+.topic{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:4px 6px 4px 10px;font-family:ui-monospace,Menlo,monospace;font-size:14px;user-select:all}
+.copy{border:0;background:var(--accent);color:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600}
+.muted{color:var(--muted);font-size:13px}
+.err{background:var(--crit-soft);color:var(--crit);padding:12px 16px;border-radius:10px}
+a{color:var(--accent)}
+.panel{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.panel h2{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:21px;margin:0 0 6px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:5px 14px;font-size:13px;font-weight:500}
+.tab[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab:focus-visible,.tab:hover{outline:2px solid var(--accent);outline-offset:1px}
+.map{position:relative;width:100%;aspect-ratio:4/3;max-height:560px;max-width:100%;border-radius:10px;overflow:hidden;background:var(--accent-soft)}
+.map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+@media (min-width:700px){.map{aspect-ratio:16/9}}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px;margin-top:10px}
+.link{display:block;border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--ink)}
+.link:hover,.link:focus-visible{border-color:var(--accent);outline:none}
+.link strong{display:block;color:var(--accent);font-size:15px}
+.link span{font-size:13px;color:var(--muted)}
+@media (max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}.temp{font-size:54px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="icon-192.png" alt=""><h1>Clima Plantas</h1></div>
+    <div class="upd"><span id="upd">Cargando pronóstico…</span><button class="btn" id="refresh" type="button">Actualizar</button></div>
+  </header>
+  <div id="summary"></div>
+  <div class="grid" id="grid"></div>
+
+  <section class="panel" id="radar">
+    <h2>Mapa en vivo</h2>
+    <p class="muted" style="margin:0">Mira las nubes y la lluvia acercándose a las plantas. Los marcadores muestran Guayaquil; mueve el mapa para ver Lomas de Sargentillo.</p>
+    <div class="tabs" role="group" aria-label="Capa del mapa">
+      <button class="tab" type="button" data-capa="radar" aria-pressed="true">Radar de lluvia</button>
+      <button class="tab" type="button" data-capa="satellite" aria-pressed="false">Satélite</button>
+      <button class="tab" type="button" data-capa="rain" aria-pressed="false">Lluvia pronosticada</button>
+      <button class="tab" type="button" data-capa="thunder" aria-pressed="false">Tormentas</button>
+    </div>
+    <div class="map"><iframe id="mapa" title="Mapa meteorológico en vivo" loading="lazy" allowfullscreen></iframe></div>
+    <p class="muted" style="margin:8px 0 0">¿No carga? <a id="mapaLink" href="https://www.windy.com/-Weather-radar-radar?radar,-2.00,-80.01,9" target="_blank" rel="noopener">Abrir el mapa en Windy</a></p>
+  </section>
+
+  <section class="panel">
+    <h2>Alertas oficiales</h2>
+    <p class="muted" style="margin:0">Ante riesgo de inundación, confirma siempre con las entidades oficiales del Ecuador.</p>
+    <div class="links">
+      <a class="link" href="https://www.inamhi.gob.ec/" target="_blank" rel="noopener"><strong>INAMHI</strong><span>Instituto Nacional de Meteorología e Hidrología: pronósticos, avisos meteorológicos y alertas hidrológicas de ríos</span></a>
+      <a class="link" href="https://www.gestionderiesgos.gob.ec/" target="_blank" rel="noopener"><strong>Secretaría de Gestión de Riesgos</strong><span>Declaratorias de alerta, situación de inundaciones y emergencias en Guayas</span></a>
+    </div>
+  </section>
+
+  <section class="alarm">
+    <h2>Alarmas en este celular</h2>
+    <p class="muted" style="margin:0">La app revisa el clima cada 15 minutos, aunque esté cerrada. Suena con sonido de alarma solo con aguacero inminente, lluvia muy fuerte, riesgo de inundación, calor extremo o sol extremo.</p>
+    <div id="alarmaEstado" class="summary ok" style="margin:12px 0 10px">Comprobando alarmas…</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="probar" type="button">Probar alarma</button>
+      <button class="btn" id="ajustes" type="button">Ajustes de notificación</button>
+    </div>
+  </section>
+  <p class="muted" style="margin-top:14px">Datos: Open-Meteo (modelos NOAA, ECMWF y otros). La app se actualiza cada 15 minutos mientras está abierta; las alarmas se revisan cada 15 minutos aunque la app esté cerrada. Mapa: Windy.</p>
+</div>
+
+<script>
+const WMO={0:"Despejado",1:"Mayormente despejado",2:"Parcialmente nublado",3:"Nublado",45:"Neblina",48:"Neblina",
+51:"Llovizna ligera",53:"Llovizna",55:"Llovizna intensa",56:"Llovizna",57:"Llovizna",61:"Lluvia ligera",63:"Lluvia moderada",65:"Lluvia fuerte",
+66:"Lluvia",67:"Lluvia fuerte",71:"Nieve",73:"Nieve",75:"Nieve",80:"Chubascos ligeros",81:"Chubascos",82:"Chubascos violentos",
+95:"Tormenta eléctrica",96:"Tormenta con granizo",99:"Tormenta con granizo"};
+const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const PREC={
+  lluvia:["Despejar canaletas, rejillas y drenajes","Cubrir material, pacas y pellet a la intemperie","Señalizar pisos mojados en patio de carga","Proteger tableros eléctricos y motores expuestos"],
+  inundacion:["Subir material, pellet y repuestos del nivel del piso","Verificar bombas de achique y generador","Cortar energía en zonas que puedan inundarse","Evitar vías anegadas para camiones y personal"],
+  calor:["Hidratación cada 20-30 minutos","Pausas a la sombra en patio y extrusión","Vigilar temperatura de motores y extrusoras"],
+  aguacero:["Cubrir ya el material y pellet al aire libre","Suspender carga y descarga en patio","Verificar rejillas y drenajes libres"],
+  uv:["Protector solar, gorra y manga larga afuera","Evitar trabajo exterior de 11:00 a 15:00"],
+  precaucion:["Tener a mano lonas para cubrir material","Revisar que los drenajes estén libres"]
+};
+let CFG;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f0=x=>x==null?"–":Math.round(x);
+const f1=x=>x==null?"–":(Math.round(x*10)/10).toString().replace(".",",");
+
+function evaluar(d,U){
+  const h=d.hourly, now=new Date(d.current.time);
+  const idx=[],idx72=[];
+  h.time.forEach((t,i)=>{const dt=new Date(t);const diff=(dt-now)/36e5;if(diff>=0&&diff<24)idx.push(i);if(diff>=0&&diff<72)idx72.push(i)});
+  const v=(k,i)=>h[k][i]??0;
+  const sum=a=>a.reduce((s,i)=>s+v("precipitation",i),0);
+  const r24=sum(idx), r72=sum(idx72);
+  const mx=k=>idx.reduce((b,i)=>v(k,i)>v(k,b)?i:b,idx[0]);
+  const iR=mx("precipitation"), iU=mx("uv_index"), iT=mx("apparent_temperature"), iP=mx("precipitation_probability");
+  const hh=i=>h.time[i].slice(11,16);
+  const risks=[];
+  let r2=0;
+  const m=d.minutely_15;
+  if(m&&m.time){
+    const p2=m.time.map((t,i)=>({t,v:m.precipitation[i]??0,diff:(new Date(t)-now)/6e4})).filter(x=>x.diff>=0&&x.diff<120);
+    r2=p2.reduce((s,x)=>s+x.v,0);
+    const pk=p2.reduce((b,x)=>x.v>(b?b.v:-1)?x:b,null);
+    if(pk&&(pk.v>=U.aguacero_15min_mm||r2>=U.lluvia_hora_mm)) risks.push({tipo:"aguacero",nivel:"crit",txt:`Aguacero inminente: ${f0(r2)} mm en las próximas 2 horas, más fuerte cerca de las ${pk.t.slice(11,16)}`});
+  }
+  if(r24>=U.inundacion_24h_mm||r72>=U.inundacion_72h_mm) risks.push({tipo:"inundacion",nivel:"crit",txt:`Riesgo de inundación: ${f0(r24)} mm en 24 h`});
+  if(v("precipitation",iR)>=U.lluvia_hora_mm||r24>=U.lluvia_dia_mm) risks.push({tipo:"lluvia",nivel:"crit",txt:`Lluvia muy fuerte: hasta ${f0(v("precipitation",iR))} mm/h cerca de las ${hh(iR)}`});
+  if(v("apparent_temperature",iT)>=U.sensacion_termica_c) risks.push({tipo:"calor",nivel:"crit",txt:`Calor extremo: sensación ${f0(v("apparent_temperature",iT))} °C a las ${hh(iT)}`});
+  if(v("uv_index",iU)>=U.uv_extremo) risks.push({tipo:"uv",nivel:"crit",txt:`Sol extremo: UV ${f0(v("uv_index",iU))} a las ${hh(iU)}`});
+  if(!risks.length&&(v("precipitation_probability",iP)>=60||r24>=5)) risks.push({tipo:"precaucion",nivel:"warn",txt:`Lluvia probable: ${f0(v("precipitation_probability",iP))} % cerca de las ${hh(iP)} (${f1(r24)} mm en 24 h)`});
+  const nivel=risks.some(r=>r.nivel==="crit")?"crit":risks.length?"warn":"ok";
+  return {risks,nivel,r24,r2,idx};
+}
+
+function chart(d,idx,U){
+  const h=d.hourly, W=440,H=120,pl=22,pb=18,pt=8, n=idx.length;
+  const vals=idx.map(i=>h.precipitation[i]??0);
+  const top=Math.max(U.lluvia_hora_mm*1.2,...vals);
+  const y=v=>pt+(H-pt-pb)*(1-v/top), bw=(W-pl)/n;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Lluvia por hora en las próximas 24 horas">`;
+  [0,U.lluvia_hora_mm].forEach(g=>{s+=`<line x1="${pl}" x2="${W}" y1="${y(g)}" y2="${y(g)}" stroke="${g?'var(--crit)':'var(--line)'}" stroke-dasharray="${g?'4 3':''}" stroke-width="1"/><text x="${pl-4}" y="${y(g)+3}" text-anchor="end">${g}</text>`});
+  vals.forEach((v,k)=>{const x=pl+k*bw+1.5,hh=Math.max(0,y(0)-y(v));
+    s+=`<rect x="${x}" y="${y(0)-hh}" width="${Math.max(1,bw-3)}" height="${hh}" rx="1.5" fill="${v>=U.lluvia_hora_mm?'var(--crit)':'var(--bar)'}"><title>${h.time[idx[k]].slice(11,16)} · ${f1(v)} mm · ${h.precipitation_probability[idx[k]]??0} %</title></rect>`;
+    if(k%6===0) s+=`<text x="${x+bw/2}" y="${H-4}" text-anchor="middle">${h.time[idx[k]].slice(11,16)}</text>`;});
+  s+=`<text x="${W}" y="${pt+2}" text-anchor="end">mm/h · línea roja = lluvia muy fuerte</text></svg>`;
+  return s;
+}
+
+function card(u,d){
+  const U=CFG.umbrales, c=d.current, e=evaluar(d,U), dl=d.daily;
+  const label={ok:"Normal",warn:"Precaución",crit:"Alerta"}[e.nivel];
+  const tipos=[...new Set(e.risks.map(r=>r.tipo))];
+  const prec=tipos.flatMap(t=>PREC[t]);
+  let days="";
+  dl.time.forEach((t,i)=>{
+    const dt=new Date(t+"T12:00"), mm=dl.precipitation_sum[i]??0, uv=dl.uv_index_max[i]??0, st=dl.apparent_temperature_max[i]??0;
+    const lv=(mm>=U.lluvia_dia_mm||uv>=U.uv_extremo||st>=U.sensacion_termica_c)?"crit":(mm>=5||(dl.precipitation_probability_max[i]??0)>=60)?"warn":"";
+    days+=`<tr><td class="d"><span class="dot ${lv}"></span>${i===0?"Hoy":DIAS[dt.getDay()]}</td><td class="c">${esc(WMO[dl.weather_code[i]]||"—")}</td><td class="r">${f0(dl.precipitation_probability_max[i])} % · ${f1(mm)} mm</td><td class="t">${f0(dl.temperature_2m_max[i])}° <span class="muted">${f0(dl.temperature_2m_min[i])}°</span></td></tr>`;
+  });
+  return `<article class="card ${e.nivel}"><div class="stripe"></div>
+   <div class="card-h"><div><h2>${esc(u.nombre)}</h2><div class="sector">${esc(u.sector)}</div></div><span class="pill ${e.nivel}">${label}</span></div>
+   <div class="now"><div class="temp">${f0(c.temperature_2m)}<small>°C</small></div>
+     <div><div class="cond">${esc(WMO[c.weather_code]||"—")}</div><div class="feels">Sensación térmica ${f0(c.apparent_temperature)} °C · Humedad ${f0(c.relative_humidity_2m)} %</div></div></div>
+   <div class="stats">
+     <div class="stat"><div class="l">Lluvia hoy</div><div class="v">${f0(dl.precipitation_probability_max[0])} %</div></div>
+     <div class="stat"><div class="l">Próx. 2 h</div><div class="v">${f1(e.r2)} mm</div></div>
+     <div class="stat"><div class="l">Próx. 24 h</div><div class="v">${f1(e.r24)} mm</div></div>
+     <div class="stat"><div class="l">UV máx.</div><div class="v">${f0(dl.uv_index_max[0])}</div></div>
+   </div>
+   ${e.risks.length?`<div class="sec"><h3>Riesgos próximas 24 h</h3><ul class="risks">${e.risks.map(r=>`<li class="${r.nivel}">${esc(r.txt)}</li>`).join("")}</ul>
+     <h3 style="margin-top:12px">Precauciones</h3><ul class="prec">${prec.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`
+     :`<div class="sec"><h3>Riesgos próximas 24 h</h3><p class="muted" style="margin:0">Sin riesgos de clima. Operación normal.</p></div>`}
+   <div class="sec"><h3>Lluvia por hora · próximas 24 h</h3>${chart(d,e.idx,U)}</div>
+   <div class="sec"><h3>Pronóstico 7 días</h3><div style="overflow-x:auto"><table class="days">${days}</table></div></div>
+  </article>`;
+}
+
+async function cargar(){
+  $("#upd").textContent="Actualizando…";
+  try{
+    if(!CFG) CFG=await (await fetch("config.json",{cache:"no-store"})).json();
+        const us=CFG.ubicaciones;
+    const p=new URLSearchParams({latitude:us.map(u=>u.lat).join(","),longitude:us.map(u=>u.lon).join(","),
+      current:"temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m",
+      hourly:"precipitation,precipitation_probability,uv_index,apparent_temperature",
+      minutely_15:"precipitation",
+      daily:"weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,apparent_temperature_max",
+      timezone:CFG.zona_horaria,forecast_days:7});
+    let data=await (await fetch("https://api.open-meteo.com/v1/forecast?"+p)).json();
+    if(!Array.isArray(data)) data=[data];
+    try{localStorage.setItem("ultimo",JSON.stringify({t:Date.now(),data}))}catch(e){}
+    pintar(us,data,new Date());
+  }catch(err){
+    let cache=null; try{cache=JSON.parse(localStorage.getItem("ultimo"))}catch(e){}
+    if(CFG&&cache){pintar(CFG.ubicaciones,cache.data,new Date(cache.t));$("#upd").textContent+=" (sin conexión)";}
+    else $("#grid").innerHTML=`<div class="err">No se pudo cargar el pronóstico. Revisa tu conexión a internet y toca Actualizar.</div>`;
+  }
+}
+function pintar(us,data,cuando){
+  $("#grid").innerHTML=us.map((u,i)=>card(u,data[i])).join("");
+  const ev=us.map((u,i)=>({u,e:evaluar(data[i],CFG.umbrales)}));
+  const crit=ev.filter(x=>x.e.nivel==="crit"), warn=ev.filter(x=>x.e.nivel==="warn");
+  const s=$("#summary");
+  if(crit.length){s.className="summary crit";s.textContent="Alerta en "+crit.map(x=>x.u.nombre).join(" y ")+": "+crit.flatMap(x=>x.e.risks.filter(r=>r.nivel==="crit").map(r=>r.txt.split(":")[0].toLowerCase())).filter((v,i,a)=>a.indexOf(v)===i).join(", ")+". Revisa las precauciones.";}
+  else if(warn.length){s.className="summary warn";s.textContent="Precaución: lluvia probable en "+warn.map(x=>x.u.nombre).join(" y ")+" en las próximas 24 horas.";}
+  else {s.className="summary ok";s.textContent="Sin riesgos de clima en las dos plantas para las próximas 24 horas.";}
+  $("#upd").textContent="Actualizado "+cuando.toLocaleTimeString("es-EC",{hour:"2-digit",minute:"2-digit"});
+}
+function capa(c){
+  const lat=-2.0,lon=-80.01,d="-2.117701",dl="-79.944159";
+  $("#mapa").src=`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${d}&detailLon=${dl}&width=650&height=450&zoom=9&level=surface&overlay=${c}&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;
+  $("#mapaLink").href=`https://www.windy.com/-${c}?${c},${lat},${lon},9`;
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",b.dataset.capa===c?"true":"false"));
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>capa(b.dataset.capa)));
+capa("radar");
+$("#refresh").addEventListener("click",cargar);
+const A=window.AppAndroid;
+function estadoAlarmas(){
+  const el=$("#alarmaEstado");
+  if(!A){el.className="summary warn";el.textContent="Las alarmas funcionan en la app instalada en Android.";return;}
+  if(!A.notificacionesActivas()){el.className="summary crit";el.textContent="Las notificaciones están desactivadas. Toca Ajustes de notificación y actívalas, o no sonarán las alarmas.";return;}
+  const u=A.ultimaRevision();
+  if(u.startsWith("error")){el.className="summary warn";el.textContent="Alarmas activas. La última revisión falló por falta de internet; se reintenta en 15 minutos.";return;}
+  el.className="summary ok";el.textContent="Alarmas activas."+(u?" Última revisión: "+u.slice(11,16)+".":"");
+}
+$("#probar").addEventListener("click",()=>{if(A){A.probarAlarma();$("#probar").textContent="Enviada";setTimeout(()=>$("#probar").textContent="Probar alarma",2500);}});
+$("#ajustes").addEventListener("click",()=>{if(A)A.abrirAjustes();});
+estadoAlarmas(); setInterval(estadoAlarmas,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){estadoAlarmas();cargar();}});
+cargar(); setInterval(cargar,15*60*1000);
+</script>
+</body>
+</html>
