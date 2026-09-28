@@ -131,6 +131,10 @@ public class RevisorClima extends JobService {
         } catch (Exception e) {
             sp.edit().putString("ultimo_error", String.valueOf(e.getMessage())).apply();
         }
+        // Boletines del INAMHI (cada 30 minutos)
+        try {
+            Inamhi.revisar(c, false);
+        } catch (Throwable ignored) { }
     }
 
     private static LocalDateTime[] tiempos(JSONArray a) throws Exception {

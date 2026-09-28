@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Clima Plantas</title>
+<title>NUTEC Clima</title>
 <meta name="theme-color" content="#1C6FB8">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,11 @@ button{font:inherit;cursor:pointer;color:inherit}
 
 /* ---------- Encabezado con pestañas de planta ---------- */
 .top{position:sticky;top:0;z-index:5;background:var(--hero-a);padding-top:env(safe-area-inset-top,0px)}
-.top .wrap{display:flex;align-items:center;gap:10px;padding-block:10px}
+.top>.wrap{display:flex;align-items:center;gap:10px;padding-block:10px}
+.marca{background:#fff;border-bottom:1px solid #E3E8EE}
+.marca .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-block:6px}
+.logo{height:44px;width:auto;display:block}
+.app-n{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#1B5FA6}
 .tabs{display:flex;gap:4px;background:rgba(255,255,255,.16);border-radius:10px;padding:3px;flex:1;min-width:0}
 .tab{flex:1;border:0;background:transparent;color:#fff;border-radius:8px;padding:8px 6px;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
 .tab[aria-selected="true"]{background:#fff;color:var(--hero-b)}
@@ -64,6 +68,7 @@ button{font:inherit;cursor:pointer;color:inherit}
 
 /* ---------- Tarjetas ---------- */
 main.wrap{display:flex;flex-direction:column;gap:12px;margin-top:-14px;position:relative}
+.card,.day{scroll-margin-top:72px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
 .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px;font-weight:600;display:flex;justify-content:space-between;gap:8px}
 .card h2 span{text-transform:none;letter-spacing:0;font-weight:500}
@@ -129,6 +134,15 @@ main.wrap{display:flex;flex-direction:column;gap:12px;margin-top:-14px;position:
 .htable tr.past td{opacity:.45}
 .scrollx{overflow-x:auto}
 
+/* INAMHI */
+.bol{border-top:1px solid var(--line);padding:10px 0}
+.bol:first-child{border-top:0;padding-top:0}
+.bol .bt{font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.bol .bf{font-size:14px;margin-top:2px}
+.bol .bm{color:var(--muted);font-size:13px;margin-top:2px}
+.bol a{font-size:14px;font-weight:600}
+.bol.viejo{opacity:.6}
+details.ant summary{cursor:pointer;color:var(--muted);font-size:13px;padding-top:8px}
 /* Otros */
 .mapa{position:relative;width:100%;max-width:100%;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--accent-soft)}
 .mapa iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -149,6 +163,10 @@ a{color:var(--accent)}
 </head>
 <body>
 <header class="top">
+  <div class="marca"><div class="wrap">
+    <img src="logo-nutec.png" alt="NUTEC · Metales, papeles, plásticos" class="logo">
+    <span class="app-n">NUTEC Clima</span>
+  </div></div>
   <div class="wrap">
     <div class="tabs" role="tablist" id="tabs"></div>
     <button class="refresh" id="refresh" type="button" aria-label="Actualizar">
@@ -178,6 +196,13 @@ a{color:var(--accent)}
     <div class="hours" id="hours"></div>
   </section>
   <div id="alerta"></div>
+
+  <section class="card" id="inamhiCard">
+    <h2>Avisos del INAMHI <span id="inamhiEst"></span></h2>
+    <div id="inamhi"><p class="muted" style="margin:0">Consultando boletines…</p></div>
+    <div class="btns"><button class="btn" id="inamhiBtn" type="button">Revisar ahora</button></div>
+    <p class="muted" style="margin:10px 0 0">La app lee los boletines oficiales cada 30 minutos. Si sale uno nuevo de alerta que menciona Guayas, Guayaquil o Daule, suena la alarma.</p>
+  </section>
 
   <section class="card" id="obsCard" hidden>
     <h2>Medición real ahora <span id="obsHora"></span></h2>
@@ -209,7 +234,7 @@ a{color:var(--accent)}
   <section class="card">
     <h2>Alarmas en este celular</h2>
     <div id="alarmaEstado" class="alerta ok" style="padding:10px 12px">Comprobando alarmas…</div>
-    <p class="muted" style="margin:10px 0 0">La app revisa el clima cada 15 minutos, aunque esté cerrada. Con aguacero inminente, lluvia muy fuerte o riesgo de inundación suena un <strong>tono de carillón que se repite hasta que alguien toque la notificación</strong>. Con calor o sol extremo suena una alarma normal.</p>
+    <p class="muted" style="margin:10px 0 0">La app revisa el clima cada 15 minutos, aunque esté cerrada. Con aguacero inminente, lluvia muy fuerte o riesgo de inundación suena un <strong>tono de carillón que se repite hasta que alguien toque la notificación</strong>. Con sol extremo (UV 11 o más) suena una alarma normal.</p>
     <div class="btns">
       <button class="btn" id="probar" type="button">Probar alarma</button>
       <button class="btn" id="ajustes" type="button">Ajustes de notificación</button>
@@ -298,7 +323,6 @@ function evaluar(d,U){
   if(!idx.length) return {risks,nivel:risks.length?"crit":"ok",r24,r2};
   if(r24>=U.inundacion_24h_mm||r72>=U.inundacion_72h_mm) risks.push({tipo:"inundacion",nivel:"crit",txt:`Riesgo de inundación: ${f0(r24)} mm en 24 h`});
   if(v("precipitation",iR)>=U.lluvia_hora_mm||r24>=U.lluvia_dia_mm) risks.push({tipo:"lluvia",nivel:"crit",txt:`Lluvia muy fuerte: hasta ${f0(v("precipitation",iR))} mm/h cerca de las ${hh(iR)}`});
-  if(v("apparent_temperature",iT)>=U.sensacion_termica_c) risks.push({tipo:"calor",nivel:"crit",txt:`Calor extremo: sensación ${f0(v("apparent_temperature",iT))} °C a las ${hh(iT)}`});
   if(v("uv_index",iU)>=U.uv_extremo) risks.push({tipo:"uv",nivel:"crit",txt:`Sol extremo: UV ${f0(v("uv_index",iU))} a las ${hh(iU)}`});
   if(!risks.length&&(v("precipitation_probability",iP)>=60||r24>=5)) risks.push({tipo:"precaucion",nivel:"warn",txt:`Lluvia probable: ${f0(v("precipitation_probability",iP))} % cerca de las ${hh(iP)} (${f1(r24)} mm en 24 h)`});
   const nivel=risks.some(r=>r.nivel==="crit")?"crit":risks.length?"warn":"ok";
@@ -376,7 +400,7 @@ function pintar(){
   $("#days").innerHTML=dl.time.map((fecha,k)=>{
     const dt=new Date(fecha+"T12:00");
     const mm=dl.precipitation_sum[k]??0, pp=dl.precipitation_probability_max[k]??0, uv=dl.uv_index_max[k]??0, st=dl.apparent_temperature_max[k]??0;
-    const lv=(mm>=U.lluvia_dia_mm||uv>=U.uv_extremo||st>=U.sensacion_termica_c)?"crit":(mm>=5||pp>=60)?"warn":"";
+    const lv=(mm>=U.lluvia_dia_mm||uv>=U.uv_extremo)?"crit":(mm>=5||pp>=60)?"warn":"";
     const tmin=Math.min(...dl.temperature_2m_min), tmax=Math.max(...dl.temperature_2m_max), span=Math.max(1,tmax-tmin);
     const l=(dl.temperature_2m_min[k]-tmin)/span*100, w=(dl.temperature_2m_max[k]-dl.temperature_2m_min[k])/span*100;
     const nombre=k===0?"Hoy":k===1?"Mañana":DIAS[dt.getDay()];
@@ -523,6 +547,41 @@ function pedirMedicion(){
   else fetch("https://aviationweather.gov/api/data/metar?ids=SEGU&hours=3&format=raw").then(r=>r.text()).then(recibirMedicion).catch(()=>recibirMedicion(null));
 }
 
+/* ---------- Boletines del INAMHI ---------- */
+const BOL_LINKS=[["Alerta temprana: advertencia","https://www.inamhi.gob.ec/pronostico/advertencia.pdf"],["Aviso a muy corto plazo","https://www.inamhi.gob.ec/pronostico/nowcasting.pdf"],["Aviso hidrológico","https://www.inamhi.gob.ec/html/Alerta_hidrologica_EHA.pdf"]];
+function hace(d){return d==null?"":d<=0?"hoy":d===1?"hace 1 día":"hace "+d+" días";}
+window.recibirInamhi=function(){pintarInamhi(false);};
+function pintarInamhi(pedir){
+  const box=$("#inamhi");
+  if(!A||!A.avisosInamhi){
+    box.innerHTML=BOL_LINKS.map(([n,u])=>`<div class="bol"><div class="bt">${esc(n)}</div><a href="${u}" target="_blank" rel="noopener">Abrir boletín (PDF)</a></div>`).join("");
+    $("#inamhiBtn").hidden=true; return;
+  }
+  let info={boletines:[]}; try{info=JSON.parse(A.avisosInamhi())}catch(e){}
+  if(pedir&&(!info.ultima||Date.now()-info.ultima>10*60*1000)){A.revisarInamhi();}
+  const activos=["advertencia","desarrollo","nowcasting","hidrologico"];
+  const con=info.boletines.filter(b=>b.numero||b.extracto);
+  if(!con.length){
+    box.innerHTML=`<p class="muted" style="margin:0">${info.ultima?(info.error?"No se pudo leer los boletines del INAMHI. Se reintenta en 30 minutos.":"Sin boletines publicados."):"Consultando boletines…"}</p>`;
+  } else {
+    con.sort((a,b)=>((b.zona&&(b.dias??99)<=3)?1:0)-((a.zona&&(a.dias??99)<=3)?1:0)||(a.dias??99)-(b.dias??99));
+    const fila=b=>{
+      const act=activos.includes(b.id), rec=(b.dias??99)<=3;
+      const pill=b.zona?`<span class="pill ${act&&rec?"crit":"warn"}">${b.regional?"Incluye la Costa":"Incluye "+esc((b.lugares||"Guayas").split(",")[0])}</span>`:`<span class="pill ok">No menciona tu zona</span>`;
+      return `<div class="bol${(b.dias??0)>7?" viejo":""}">
+        <div class="bt"><span>${esc(b.nombre)}${b.numero?" · Nro. "+esc(b.numero):""}</span>${pill}</div>
+        ${b.fenomeno?`<div class="bf">${esc(b.fenomeno.charAt(0)+b.fenomeno.slice(1).toLowerCase())}</div>`:""}
+        <div class="bm">${b.estatus?"Estatus: "+esc(b.estatus)+" · ":""}${b.emision?"Emitido "+esc(b.emision)+" ("+hace(b.dias)+")":""}${b.zona&&b.lugares?" · Menciona: "+esc(b.lugares):""}</div>
+        <a href="${esc(b.url)}" target="_blank" rel="noopener">Abrir boletín (PDF)</a>
+      </div>`;};
+    const recientes=con.filter(b=>(b.dias??0)<=7), viejos=con.filter(b=>(b.dias??0)>7);
+    box.innerHTML=(recientes.length?recientes.map(fila).join(""):`<p class="muted" style="margin:0">No hay boletines de los últimos 7 días.</p>`)
+      +(viejos.length?`<details class="ant"><summary>Boletines anteriores (${viejos.length})</summary>${viejos.map(fila).join("")}</details>`:"");
+  }
+  $("#inamhiEst").textContent=info.ultima?"Revisado "+new Date(info.ultima).toLocaleTimeString("es-EC",{hour:"2-digit",minute:"2-digit"}):"";
+}
+$("#inamhiBtn").addEventListener("click",()=>{if(A&&A.revisarInamhi){$("#inamhiEst").textContent="Revisando…";A.revisarInamhi();}});
+
 /* ---------- Mapa ---------- */
 function capa(c){
   const lat=-2.0,lon=-80.01;
@@ -548,6 +607,7 @@ $("#ajustes").addEventListener("click",()=>{if(A)A.abrirAjustes();});
 $("#refresh").addEventListener("click",()=>{cargar();pedirMedicion();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){estadoAlarmas();cargar();pedirMedicion();}});
 estadoAlarmas(); setInterval(estadoAlarmas,60000);
+pintarInamhi(true); setInterval(()=>pintarInamhi(true),15*60*1000);
 cargar(); pedirMedicion(); setInterval(()=>{cargar();pedirMedicion();},15*60*1000);
 </script>
 </body>

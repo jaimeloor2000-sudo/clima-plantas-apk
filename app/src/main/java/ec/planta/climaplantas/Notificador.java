@@ -26,7 +26,7 @@ public final class Notificador {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         if (nm == null || nm.getNotificationChannel(CANAL) != null) return;
         NotificationChannel ch = new NotificationChannel(CANAL, "Alertas de clima", NotificationManager.IMPORTANCE_HIGH);
-        ch.setDescription("Lluvia muy fuerte, aguacero, inundación, calor o sol extremo en las plantas");
+        ch.setDescription("Sol extremo en las plantas");
         AudioAttributes aa = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)

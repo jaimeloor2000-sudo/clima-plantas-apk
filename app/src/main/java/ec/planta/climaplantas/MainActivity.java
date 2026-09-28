@@ -151,6 +151,21 @@ public class MainActivity extends Activity {
                     "Así suena la alarma de lluvia e inundación. Toca esta notificación para detenerla.", 999, true);
         }
 
+        /** Boletines del INAMHI guardados (JSON). */
+        @JavascriptInterface
+        public String avisosInamhi() {
+            return Inamhi.comoJson(ctx);
+        }
+
+        /** Revisa ya los boletines del INAMHI y avisa a la pantalla al terminar. */
+        @JavascriptInterface
+        public void revisarInamhi() {
+            new Thread(() -> {
+                try { Inamhi.revisar(ctx, true); } catch (Throwable ignored) { }
+                web.post(() -> web.evaluateJavascript("window.recibirInamhi && window.recibirInamhi()", null));
+            }).start();
+        }
+
         @JavascriptInterface
         public boolean notificacionesActivas() {
             return Notificador.permitido(ctx);

@@ -115,10 +115,7 @@ public final class Reglas {
                     "Lluvia muy fuerte: hasta " + n0(lluvia[iR]) + " mm/h cerca de las " + hh(horas[iR])
                             + ", total " + n0(r24) + " mm en 24 h", horas[iR], false));
         }
-        if (sens[iS] >= u.sensacion) {
-            out.add(new Riesgo("calor",
-                    "Calor extremo: sensación térmica " + n0(sens[iS]) + " °C a las " + hh(horas[iS]), horas[iS], false));
-        }
+        // La alarma de calor se quitó a pedido: la sensación térmica queda solo como información en la pantalla.
         if (uv[iU] >= u.uv) {
             out.add(new Riesgo("uv",
                     "Sol extremo: índice UV " + n0(uv[iU]) + " a las " + hh(horas[iU]), horas[iU], false));
