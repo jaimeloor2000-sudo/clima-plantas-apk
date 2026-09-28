@@ -7,14 +7,16 @@
       "nombre": "Planta Guayaquil",
       "sector": "Norte, vía a Daule",
       "lat": -2.117701,
-      "lon": -79.944159
+      "lon": -79.944159,
+      "corto": "Guayaquil"
     },
     {
       "id": "sargentillo",
       "nombre": "Planta Lomas de Sargentillo",
       "sector": "Lomas de Sargentillo, Guayas",
       "lat": -1.885063,
-      "lon": -80.081578
+      "lon": -80.081578,
+      "corto": "Sargentillo"
     }
   ],
   "umbrales": {
