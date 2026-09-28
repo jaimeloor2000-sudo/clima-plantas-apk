@@ -71,6 +71,7 @@ public class MainActivity extends Activity {
         web.loadUrl("https://" + HOST + "/index.html");
 
         Notificador.crearCanal(this);
+        Notificador.crearCanalSirena(this);
         RevisorClima.programar(this);
         new Thread(() -> RevisorClima.revisar(getApplicationContext())).start();
         pedirPermisoNotificaciones();
@@ -147,7 +148,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void probarAlarma() {
             Notificador.enviar(ctx, "Prueba de alarma",
-                    "Si escuchas esto, las alarmas de clima de las plantas están activas.", 999);
+                    "Así suena la alarma de lluvia e inundación. Toca esta notificación para detenerla.", 999, true);
         }
 
         @JavascriptInterface

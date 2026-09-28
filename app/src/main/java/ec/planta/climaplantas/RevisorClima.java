@@ -107,8 +107,9 @@ public class RevisorClima extends JobService {
                 for (Reglas.Riesgo r : rs) {
                     String clave = "a:" + Reglas.clave(ub.getString("id"), r);
                     if (sp.contains(clave)) continue;
+                    boolean sirena = r.tipo.equals("lluvia") || r.tipo.equals("aguacero") || r.tipo.equals("inundacion");
                     Notificador.enviar(c, "ALERTA " + ub.getString("nombre"), Reglas.mensaje(r),
-                            Math.abs(clave.hashCode()));
+                            Math.abs(clave.hashCode()), sirena);
                     ed.putString(clave, ahora.toString());
                     enviadas++;
                 }
