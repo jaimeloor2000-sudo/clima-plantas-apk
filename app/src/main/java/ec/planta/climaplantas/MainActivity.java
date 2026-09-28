@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(true);
-        web.addJavascriptInterface(new Puente(this), "AppAndroid");
+        web.addJavascriptInterface(new Puente(this, web), "AppAndroid");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
@@ -123,8 +123,26 @@ public class MainActivity extends Activity {
     /** Funciones que la pantalla puede llamar (botones "Probar alarma", estado). */
     public static class Puente {
         private final Context ctx;
+        private final WebView web;
 
-        Puente(Context c) { ctx = c.getApplicationContext(); }
+        Puente(Context c, WebView w) { ctx = c.getApplicationContext(); web = w; }
+
+        /** Pide la última medición real de la estación del aeropuerto de Guayaquil (SEGU). */
+        @JavascriptInterface
+        public void pedirMedicion() {
+            new Thread(() -> {
+                String js;
+                try {
+                    String cuerpo = RevisorClima.http(
+                            "https://aviationweather.gov/api/data/metar?ids=SEGU&hours=3&format=raw");
+                    js = "window.recibirMedicion && window.recibirMedicion(" + org.json.JSONObject.quote(cuerpo) + ")";
+                } catch (Exception e) {
+                    js = "window.recibirMedicion && window.recibirMedicion(null)";
+                }
+                final String codigo = js;
+                web.post(() -> web.evaluateJavascript(codigo, null));
+            }).start();
+        }
 
         @JavascriptInterface
         public void probarAlarma() {

@@ -153,7 +153,7 @@ public class RevisorClima extends JobService {
         }
     }
 
-    private static String http(String url) throws Exception {
+    static String http(String url) throws Exception {
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setConnectTimeout(20000);
         con.setReadTimeout(30000);

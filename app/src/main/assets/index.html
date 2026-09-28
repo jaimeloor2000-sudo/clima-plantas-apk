@@ -88,6 +88,15 @@ button{font:inherit;cursor:pointer}
 .muted{color:var(--muted);font-size:13px}
 .err{background:var(--crit-soft);color:var(--crit);padding:12px 16px;border-radius:10px}
 a{color:var(--accent)}
+.obs{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:center}
+.obs .lab{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.obs .t{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:48px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.obs .t small{font-size:20px;color:var(--muted)}
+.obs .d{font-size:15px;font-weight:600}
+.obs .m{color:var(--muted);font-size:13px}
+.obs .foot{grid-column:1/-1;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;margin-left:6px;vertical-align:2px}
+.chip.crit{background:var(--crit-soft);color:var(--crit)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.ok{background:var(--ok-soft);color:var(--ok)}
 .panel{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
 .panel h2{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif;font-size:21px;margin:0 0 6px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
@@ -113,6 +122,12 @@ a{color:var(--accent)}
     <div class="upd"><span id="upd">Cargando pronóstico…</span><button class="btn" id="refresh" type="button">Actualizar</button></div>
   </header>
   <div id="summary"></div>
+  <section class="obs" id="obs" aria-live="polite">
+    <div class="lab"><span>Medición real ahora · Aeropuerto de Guayaquil</span><span id="obsHora"></span></div>
+    <div class="t" id="obsTemp">–<small>°C</small></div>
+    <div><div class="d" id="obsDesc">Consultando la estación…</div><div class="m" id="obsDet"></div></div>
+    <div class="foot">Estación oficial José Joaquín de Olmedo (SEGU), a unos 8 km de la Planta Guayaquil. Mide cada hora. Lomas de Sargentillo no tiene estación cercana: ahí se usa el pronóstico.</div>
+  </section>
   <div class="grid" id="grid"></div>
 
   <section class="panel" id="radar">
@@ -271,6 +286,64 @@ function pintar(us,data,cuando){
   else {s.className="summary ok";s.textContent="Sin riesgos de clima en las dos plantas para las próximas 24 horas.";}
   $("#upd").textContent="Actualizado "+cuando.toLocaleTimeString("es-EC",{hour:"2-digit",minute:"2-digit"});
 }
+function leerMetar(txt){
+  const line=(txt||"").split("\n").map(s=>s.trim()).find(s=>/^(METAR|SPECI)\s/.test(s)||/^[A-Z]{4}\s\d{6}Z/.test(s));
+  if(!line) return null;
+  const t=line.replace(/^(METAR|SPECI)\s+/,"").split(/\s+/);
+  const o={raw:line};
+  const tm=line.match(/\s(\d{2})(\d{2})(\d{2})Z\s/);
+  if(tm){const n=new Date();let d=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),+tm[1],+tm[2],+tm[3]));if(d-n>2*864e5)d=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth()-1,+tm[1],+tm[2],+tm[3]));o.hora=d;}
+  const w=line.match(/\s(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT\s/);
+  if(w){o.vientoKmh=Math.round(+w[2]*1.852);o.rafagaKmh=w[3]?Math.round(+w[3]*1.852):null;o.vientoDir=w[1]==="VRB"?null:+w[1];}
+  const td=line.match(/\s(M?\d{2})\/(M?\d{2})?\s/);
+  const num=s=>s==null?null:(s[0]==="M"?-(+s.slice(1)):+s);
+  if(td){o.temp=num(td[1]);o.rocio=num(td[2]);if(o.rocio!=null){const a=17.625,b=243.04;o.humedad=Math.round(100*Math.exp(a*o.rocio/(b+o.rocio))/Math.exp(a*o.temp/(b+o.temp)));}}
+  const WX={RA:"lluvia",DZ:"llovizna",SH:"chubascos",TS:"tormenta eléctrica",BR:"neblina",FG:"niebla",HZ:"calima",GR:"granizo",GS:"granizo"};
+  const tiempo=[];let llueveAhora=false,fuerte=false,cerca=false;
+  for(const tok of t){
+    const m=tok.match(/^(\+|-|VC)?(MI|BC|PR|DR|BL|SH|TS|FZ)?((?:DZ|RA|SN|GR|GS|BR|FG|HZ|UP)*)$/);
+    if(!m||(!m[2]&&!m[3])||tok==="RMK") continue;
+    if(/^(NOSIG|CAVOK|AUTO|COR)$/.test(tok)) continue;
+    let d=[];
+    if(m[2]==="TS") d.push("tormenta eléctrica"); else if(m[2]==="SH") d.push(m[3]?"chubascos de lluvia":"chubascos");
+    (m[3].match(/.{2}/g)||[]).forEach(c=>{if(WX[c]&&!(m[2]==="SH"&&c==="RA"))d.push(WX[c])});
+    if(!d.length) continue;
+    const pl=/s$/.test(d[0].split(" ")[0]);
+    if(m[1]==="+"){d[0]+=pl?" fuertes":" fuerte";fuerte=true;} else if(m[1]==="-") d[0]+=pl?" ligeros":" ligera";
+    let s=d.join(" con ");
+    if(m[1]==="VC"){s+=" en los alrededores";cerca=true;} else if(/RA|DZ|SH|TS/.test(tok)) llueveAhora=true;
+    tiempo.push(s);
+    if(tok==="RMK") break;
+  }
+  const idxR=t.indexOf("RMK"); 
+  o.tiempo=tiempo; o.llueveAhora=llueveAhora; o.fuerte=fuerte; o.cerca=cerca;
+  const CV={FEW:"pocas nubes",SCT:"nubes dispersas",BKN:"mayormente nublado",OVC:"cubierto"};
+  let peor=null;const orden=["FEW","SCT","BKN","OVC"];
+  for(const tok of (idxR>0?t.slice(0,idxR):t)){const c=tok.match(/^(FEW|SCT|BKN|OVC)(\d{3})/);if(c&&(!peor||orden.indexOf(c[1])>orden.indexOf(peor)))peor=c[1];}
+  o.cielo=/CAVOK|SKC|NSC|CLR/.test(line)?"despejado":peor?CV[peor]:null;
+  return o;
+}
+
+const DIRS=["norte","noreste","este","sureste","sur","suroeste","oeste","noroeste"];
+window.recibirMedicion=function(txt){
+  const o=leerMetar(txt);
+  if(!o||o.temp==null){$("#obsDesc").textContent="No se pudo leer la estación ahora. Se reintenta en 15 minutos.";$("#obsDet").textContent="";return;}
+  $("#obsTemp").innerHTML=`${o.temp}<small>°C</small>`;
+  let desc=o.tiempo.length?o.tiempo.join(", "):(o.cielo||"Sin lluvia");
+  desc=desc.charAt(0).toUpperCase()+desc.slice(1);
+  const chip=o.llueveAhora?`<span class="chip ${o.fuerte?"crit":"warn"}">${o.fuerte?"Lluvia fuerte ahora":"Lloviendo ahora"}</span>`:o.cerca?`<span class="chip warn">Lluvia cerca</span>`:`<span class="chip ok">Sin lluvia</span>`;
+  $("#obsDesc").innerHTML=esc(desc)+chip;
+  const det=[];
+  if(o.humedad!=null)det.push("Humedad "+o.humedad+" %");
+  if(o.vientoKmh!=null)det.push("Viento "+o.vientoKmh+" km/h"+(o.vientoDir!=null?" del "+DIRS[Math.round(o.vientoDir/45)%8]:"")+(o.rafagaKmh?", ráfagas "+o.rafagaKmh:""));
+  if(o.cielo&&o.tiempo.length)det.push(o.cielo.charAt(0).toUpperCase()+o.cielo.slice(1));
+  $("#obsDet").textContent=det.join(" · ");
+  if(o.hora){const min=Math.round((Date.now()-o.hora)/6e4);$("#obsHora").textContent="Medido "+o.hora.toLocaleTimeString("es-EC",{hour:"2-digit",minute:"2-digit"})+(min>120?" · dato atrasado":"");}
+};
+function pedirMedicion(){
+  if(window.AppAndroid&&AppAndroid.pedirMedicion){AppAndroid.pedirMedicion();}
+  else fetch("https://aviationweather.gov/api/data/metar?ids=SEGU&hours=3&format=raw").then(r=>r.text()).then(recibirMedicion).catch(()=>recibirMedicion(null));
+}
 function capa(c){
   const lat=-2.0,lon=-80.01,d="-2.117701",dl="-79.944159";
   $("#mapa").src=`https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${d}&detailLon=${dl}&width=650&height=450&zoom=9&level=surface&overlay=${c}&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;
@@ -279,7 +352,7 @@ function capa(c){
 }
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>capa(b.dataset.capa)));
 capa("radar");
-$("#refresh").addEventListener("click",cargar);
+$("#refresh").addEventListener("click",()=>{cargar();pedirMedicion();});
 const A=window.AppAndroid;
 function estadoAlarmas(){
   const el=$("#alarmaEstado");
@@ -292,8 +365,8 @@ function estadoAlarmas(){
 $("#probar").addEventListener("click",()=>{if(A){A.probarAlarma();$("#probar").textContent="Enviada";setTimeout(()=>$("#probar").textContent="Probar alarma",2500);}});
 $("#ajustes").addEventListener("click",()=>{if(A)A.abrirAjustes();});
 estadoAlarmas(); setInterval(estadoAlarmas,60000);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){estadoAlarmas();cargar();}});
-cargar(); setInterval(cargar,15*60*1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){estadoAlarmas();cargar();pedirMedicion();}});
+cargar(); pedirMedicion(); setInterval(()=>{cargar();pedirMedicion();},15*60*1000);
 </script>
 </body>
 </html>
